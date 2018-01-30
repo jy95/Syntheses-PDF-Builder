@@ -1,10 +1,13 @@
 import subprocess
 import os
+import platform
 import re
+import fnmatch
 import yaml
 
 # Absolute path to the config file
 CONFIG_FILE_LOCATION = '/mnt/d/SynthesesEPL/Syntheses/src'  # Linux Location
+# CONFIG_FILE_LOCATION = 'D:\SynthesesEPL\Syntheses\src'  # Windows Location
 CONFIG_FILE_NAME = 'config.yml'
 CONFIG_FILE_FULL_PATH = os.path.abspath(os.path.join(CONFIG_FILE_LOCATION, CONFIG_FILE_NAME))
 
@@ -34,13 +37,8 @@ def main():
             # mapping dictionnary
             mapping_course_name = document['clients'][0]['output']['parameters'][0]['parameters'][5]['mapping']
 
-            # find command that matches default file format : courseLabel-courseId-typeFile.tex
-            find_latex_files = ['find', syntheses_folder, '-name "*-*-' + TYPE_FILE + '.tex"', '-type f']
-            command = ' '.join(find_latex_files)
-            stdout = subprocess.check_output(command, shell=True)
-
-            # Save found files to list
-            file_list = stdout.decode().split()
+            # find files that matches default file format : courseLabel-courseId-typeFile.tex
+            file_list = find_files(syntheses_folder)
 
             # filename part extractor ; to rename the output pdf files
             pattern = re.compile('(\w+)-(\w+)-(\w+)(.+)?.tex')
@@ -78,7 +76,7 @@ def main():
             print("Remove the temp files produced by latex : aux log synctex.gz")
             try:
                 remove_command = 'rm -f *.aux *.log *.synctex.gz'
-                subprocess.Popen(remove_command, shell=True, cwd=out_folder, stdout=DEVNULL)
+                # subprocess.Popen(remove_command, shell=True, cwd=out_folder, stdout=DEVNULL)
             except subprocess.CalledProcessError as e:
                 print("Cannot remove the temp files produced by pdflatex")
 
@@ -86,6 +84,22 @@ def main():
             print(exc)
         except AttributeError as err:
             print(err)
+
+
+# Cross plateform find command that matches default file format : courseLabel-courseId-typeFile.tex
+def find_files(syntheses_folder):
+    if 'Windows' is platform.system():
+        matches = []
+        for root, dirnames, filenames in os.walk(syntheses_folder):
+            for filename in fnmatch.filter(filenames, '*-*-' + TYPE_FILE + '.tex'):
+                matches.append(os.path.join(root, filename))
+        return matches
+    else:
+        find_latex_files = ['find', syntheses_folder, '-name "*-*-' + TYPE_FILE + '.tex"', '-type f']
+        command = ' '.join(find_latex_files)
+        stdout = subprocess.check_output(command, shell=True)
+        # Save found files to list
+        return stdout.decode().split()
 
 
 if __name__ == "__main__": main()
