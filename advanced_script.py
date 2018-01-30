@@ -76,7 +76,7 @@ def main():
             print("Remove the temp files produced by latex : aux log synctex.gz")
             try:
                 remove_command = 'rm -f *.aux *.log *.synctex.gz'
-                # subprocess.Popen(remove_command, shell=True, cwd=out_folder, stdout=DEVNULL)
+                subprocess.Popen(remove_command, shell=True, cwd=out_folder, stdout=DEVNULL)
             except subprocess.CalledProcessError as e:
                 print("Cannot remove the temp files produced by pdflatex")
 
