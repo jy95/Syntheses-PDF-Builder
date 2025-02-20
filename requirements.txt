@@ -1,2 +1,2 @@
 ####### Only for advanced_script.py #######
-PyYAML==5.1
+PyYAML==5.4
